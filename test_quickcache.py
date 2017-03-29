@@ -4,7 +4,7 @@ import time
 from unittest import TestCase
 import datetime
 
-from dimagi.utils import make_uuid
+import uuid
 
 from quickcache import get_quickcache
 from quickcache.cache_helpers import TieredCache
@@ -311,7 +311,7 @@ class QuickcacheTest(TestCase):
     def test_dict_arg(self):
         @quickcache(['dct'])
         def return_random(dct):
-            return make_uuid()
+            return uuid.uuid4().hex
         value_1 = return_random({})
         self.assertEqual(return_random({}), value_1)
 
