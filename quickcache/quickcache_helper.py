@@ -6,6 +6,11 @@ from inspect import isfunction
 from .logger import logger
 import six
 
+if six.PY2:
+    NUMERIC_TYPES = (int, long, float)
+else:
+    NUMERIC_TYPES = (int, float)
+
 
 class QuickCacheHelper(object):
     def __init__(self, fn, vary_on, cache, skip_arg=None, assert_function=None):
@@ -96,7 +101,7 @@ class QuickCacheHelper(object):
             return 'u' + self._hash(encoded)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
-        elif isinstance(value, (int, long, float)):
+        elif isinstance(value, NUMERIC_TYPES):
             return 'n' + str(value)
         elif isinstance(value, (list, tuple)):
             return 'L' + self._hash(
