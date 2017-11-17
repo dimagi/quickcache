@@ -11,5 +11,7 @@ setup(
     url='https://github.com/dimagi/quickcache',
     packages=['quickcache'],
     test_suite='test_quickcache',
-    install_requires=[],
+    install_requires=[
+        'six==1.11.0',
+    ],
 )

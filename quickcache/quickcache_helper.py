@@ -4,6 +4,7 @@ import inspect
 from inspect import isfunction
 
 from .logger import logger
+import six
 
 
 class QuickCacheHelper(object):
@@ -31,13 +32,13 @@ class QuickCacheHelper(object):
 
         self.vary_on = vary_on
 
-        if skip_arg is None or isinstance(skip_arg, basestring) or isfunction(skip_arg):
+        if skip_arg is None or isinstance(skip_arg, six.string_types) or isfunction(skip_arg):
             self.skip_arg = skip_arg
         else:
             raise ValueError("skip_arg must be None, a string, or a function")
 
         arg_spec = inspect.getargspec(self.fn)
-        if isinstance(skip_arg, basestring) and self.skip_arg not in arg_spec.args:
+        if isinstance(skip_arg, six.string_types) and self.skip_arg not in arg_spec.args:
             raise ValueError(
                 'We cannot use "{}" as the "skip" parameter because the function {} has '
                 'no such argument'.format(self.skip_arg, self.fn.__name__)
@@ -79,7 +80,7 @@ class QuickCacheHelper(object):
         return hashlib.md5(value).hexdigest()[-length:]
 
     def _serialize_for_key(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             # Unicode and string values should generate the same key since users generally
             # intend them to mean the same thing. If a use case for differentiating
             # them presents itself add a 'lenient_strings=False' option to allow
@@ -132,7 +133,7 @@ class QuickCacheHelper(object):
     def skip(self, *args, **kwargs):
         if not self.skip_arg:
             return False
-        elif isinstance(self.skip_arg, basestring):
+        elif isinstance(self.skip_arg, six.string_types):
             callargs = inspect.getcallargs(self.fn, *args, **kwargs)
             return callargs[self.skip_arg]
         elif isfunction(self.skip_arg):
