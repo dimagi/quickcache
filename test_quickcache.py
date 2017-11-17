@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import time
 
 from unittest import TestCase
@@ -181,7 +181,7 @@ class QuickcacheTest(TestCase):
             return hash(bytes)
 
         symbols = '!@#$%^&*():{}"?><.~`'
-        bytes = '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09'
+        bytes = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09'
         self.assertEqual(encode(symbols), hash(symbols))
         self.assertEqual(encode(bytes), hash(bytes))
 

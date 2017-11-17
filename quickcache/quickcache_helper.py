@@ -82,23 +82,23 @@ class QuickCacheHelper(object):
 
     @staticmethod
     def _hash(value, length=32):
-        return hashlib.md5(value).hexdigest()[-length:]
+        return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
     def _serialize_for_key(self, value):
-        if isinstance(value, six.string_types):
-            # Unicode and string values should generate the same key since users generally
-            # intend them to mean the same thing. If a use case for differentiating
-            # them presents itself add a 'lenient_strings=False' option to allow
-            # the user to explicitly request the different behaviour.
-            if isinstance(value, unicode):
-                encoded = value.encode('utf-8')
-            else:
-                try:
-                    encoded = value.decode('utf-8').encode('utf-8')
-                except UnicodeDecodeError:
-                    self.encoding_assert(False, 'Non-utf8 encoded string used as cache vary on')
-                    encoded = value
-            return 'u' + self._hash(encoded)
+        if isinstance(value, six.text_type):
+            return 'u' + self._hash(value)
+        elif isinstance(value, bytes):
+            # Text and bytes values should generate the same key since users
+            # generally intend them to mean the same thing (on Python 2 anyway).
+            # If a use case for differentiating them presents itself add a
+            # 'lenient_strings=False' option to allow the user to explicitly
+            # request the different behaviour.
+            try:
+                text = value.decode('utf-8')
+            except UnicodeDecodeError:
+                self.encoding_assert(False, 'Non-utf8 encoded string used as cache vary on')
+                return 'u' + hashlib.md5(value).hexdigest()[-32:]
+            return 'u' + self._hash(text)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
         elif isinstance(value, NUMERIC_TYPES):
