@@ -134,3 +134,14 @@ e.g.
 u'namé' and 'nam\xc3\xa9' (UTF-8 encoding) will result in the same cache key
 BUT
 u'namé' and 'nam\xe9' (latin-1 encoding) will NOT result in the same cache key
+
+# Building and deployment
+
+Following instructions for [packaging and distributing universal wheels
+](https://packaging.python.org/tutorials/distributing-packages/#universal-wheels)
+
+```sh
+python setup.py bdist_wheel
+pip install twine
+twine upload dist/*
+```
