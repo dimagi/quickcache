@@ -137,8 +137,8 @@ u'namé' and 'nam\xe9' (latin-1 encoding) will NOT result in the same cache key
 
 # Building and deployment
 
-Following instructions for [deploying pure Python wheels
-](https://packaging.python.org/tutorials/distributing-packages/#pure-python-wheels).
+Following instructions for [packaging and distributing universal wheels
+](https://packaging.python.org/tutorials/distributing-packages/#universal-wheels)
 
 ```sh
 python setup.py bdist_wheel
