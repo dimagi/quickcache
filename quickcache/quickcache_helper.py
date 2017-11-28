@@ -1,8 +1,15 @@
+from __future__ import absolute_import
 import hashlib
 import inspect
 from inspect import isfunction
 
 from .logger import logger
+import six
+
+if six.PY2:
+    NUMERIC_TYPES = (int, long, float)
+else:
+    NUMERIC_TYPES = (int, float)
 
 
 class QuickCacheHelper(object):
@@ -30,13 +37,13 @@ class QuickCacheHelper(object):
 
         self.vary_on = vary_on
 
-        if skip_arg is None or isinstance(skip_arg, basestring) or isfunction(skip_arg):
+        if skip_arg is None or isinstance(skip_arg, six.string_types) or isfunction(skip_arg):
             self.skip_arg = skip_arg
         else:
             raise ValueError("skip_arg must be None, a string, or a function")
 
         arg_spec = inspect.getargspec(self.fn)
-        if isinstance(skip_arg, basestring) and self.skip_arg not in arg_spec.args:
+        if isinstance(skip_arg, six.string_types) and self.skip_arg not in arg_spec.args:
             raise ValueError(
                 'We cannot use "{}" as the "skip" parameter because the function {} has '
                 'no such argument'.format(self.skip_arg, self.fn.__name__)
@@ -75,26 +82,26 @@ class QuickCacheHelper(object):
 
     @staticmethod
     def _hash(value, length=32):
-        return hashlib.md5(value).hexdigest()[-length:]
+        return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
     def _serialize_for_key(self, value):
-        if isinstance(value, basestring):
-            # Unicode and string values should generate the same key since users generally
-            # intend them to mean the same thing. If a use case for differentiating
-            # them presents itself add a 'lenient_strings=False' option to allow
-            # the user to explicitly request the different behaviour.
-            if isinstance(value, unicode):
-                encoded = value.encode('utf-8')
-            else:
-                try:
-                    encoded = value.decode('utf-8').encode('utf-8')
-                except UnicodeDecodeError:
-                    self.encoding_assert(False, 'Non-utf8 encoded string used as cache vary on')
-                    encoded = value
-            return 'u' + self._hash(encoded)
+        if isinstance(value, six.text_type):
+            return 'u' + self._hash(value)
+        elif isinstance(value, bytes):
+            # Text and bytes values should generate the same key since users
+            # generally intend them to mean the same thing (on Python 2 anyway).
+            # If a use case for differentiating them presents itself add a
+            # 'lenient_strings=False' option to allow the user to explicitly
+            # request the different behaviour.
+            try:
+                text = value.decode('utf-8')
+            except UnicodeDecodeError:
+                self.encoding_assert(False, 'Non-utf8 encoded string used as cache vary on')
+                return 'u' + hashlib.md5(value).hexdigest()[-32:]
+            return 'u' + self._hash(text)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
-        elif isinstance(value, (int, long, float)):
+        elif isinstance(value, NUMERIC_TYPES):
             return 'n' + str(value)
         elif isinstance(value, (list, tuple)):
             return 'L' + self._hash(
@@ -131,7 +138,7 @@ class QuickCacheHelper(object):
     def skip(self, *args, **kwargs):
         if not self.skip_arg:
             return False
-        elif isinstance(self.skip_arg, basestring):
+        elif isinstance(self.skip_arg, six.string_types):
             callargs = inspect.getcallargs(self.fn, *args, **kwargs)
             return callargs[self.skip_arg]
         elif isfunction(self.skip_arg):
