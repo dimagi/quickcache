@@ -76,6 +76,14 @@ class QuickCacheHelper(object):
         logger.debug(key)
         return self.cache.get(key, default=Ellipsis)
 
+    def set_cached_value(self, *args, **kwargs):
+        """
+        Sets the cached value
+        """
+        key = self.get_cache_key(*args, **kwargs)
+        logger.debug(key)
+        self.cache.set(key, default=Ellipsis)
+
     def clear(self, *args, **kwargs):
         key = self.get_cache_key(*args, **kwargs)
         self.cache.delete(key)
