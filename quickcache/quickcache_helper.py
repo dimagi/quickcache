@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import hashlib
 import inspect
 from inspect import isfunction
+from collections import namedtuple
 
 from .logger import logger
 import six
@@ -82,7 +83,7 @@ class QuickCacheHelper(object):
         """
         key = self.get_cache_key(*args, **kwargs)
         logger.debug(key)
-        self.cache.set(key, default=Ellipsis)
+        return namedtuple('Settable', ['to'])(lambda value: self.cache.set(key, value))
 
     def clear(self, *args, **kwargs):
         key = self.get_cache_key(*args, **kwargs)
