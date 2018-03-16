@@ -331,14 +331,14 @@ class QuickcacheTest(TestCase):
             BUFFER.append('called')
             return 'VALUE'
 
-        name_unicode = 'name'
+        name = 'name'
         # Test calling the cache as is
-        self.assertEqual(return_name(name_unicode), 'VALUE')
+        self.assertEqual(return_name(name), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['local miss', 'shared miss', 'called'])
-        self.assertEqual(return_name(name_unicode), 'VALUE')
+        self.assertEqual(return_name(name), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['local hit'])
 
         # Test resetting the cached value and calling the cache again
-        return_name.set_cached_value(name_unicode).to('NEW VALUE')
-        self.assertEqual(return_name(name_unicode), 'NEW VALUE')
+        return_name.set_cached_value(name).to('NEW VALUE')
+        self.assertEqual(return_name(name), 'NEW VALUE')
         self.assertEqual(self.consume_buffer(), ['local hit'])
