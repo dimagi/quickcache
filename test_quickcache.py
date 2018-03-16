@@ -339,6 +339,6 @@ class QuickcacheTest(TestCase):
         self.assertEqual(self.consume_buffer(), ['local hit'])
 
         # Test resetting the cached value and calling the cache again
-        return_name.set_cached_value(name_unicode).to("NEW VALUE")
+        return_name.set_cached_value(name_unicode).to('NEW VALUE')
         self.assertEqual(return_name(name_unicode), 'NEW VALUE')
         self.assertEqual(self.consume_buffer(), ['local hit'])
