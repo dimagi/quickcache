@@ -324,3 +324,21 @@ class QuickcacheTest(TestCase):
         self.assertEqual(return_random({'abc': 123, 'def': 456}), value_3)
         self.assertNotEqual(value_3, value_1)
         self.assertNotEqual(value_3, value_2)
+
+    def test_set_cached_value(self):
+        @quickcache(['name'], cache=_cache)
+        def return_name(name):
+            BUFFER.append('called')
+            return 'VALUE'
+
+        name = 'name'
+        # Test calling the cache as is
+        self.assertEqual(return_name(name), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['local miss', 'shared miss', 'called'])
+        self.assertEqual(return_name(name), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['local hit'])
+
+        # Test resetting the cached value and calling the cache again
+        return_name.set_cached_value(name).to('NEW VALUE')
+        self.assertEqual(return_name(name), 'NEW VALUE')
+        self.assertEqual(self.consume_buffer(), ['local hit'])

@@ -44,6 +44,7 @@ class ConfigMixin(object):
             inner.get_cache_key = helper.get_cache_key
             inner.prefix = helper.prefix
             inner.get_cached_value = helper.get_cached_value
+            inner.set_cached_value = helper.set_cached_value
 
             return inner
 
