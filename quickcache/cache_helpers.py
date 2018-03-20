@@ -1,9 +1,15 @@
 from __future__ import absolute_import
+
+import warnings
 from collections import namedtuple
 from .logger import logger
 
 
 class CacheWithPresets(namedtuple('CacheWithPresets', ['cache', 'timeout', 'prefix_function'])):
+
+    # make prefix_function optional
+    def __new__(cls, cache, timeout, prefix_function=None):
+        return super(CacheWithPresets, cls).__new__(cls, cache, timeout, prefix_function)
 
     def prefixed_key(self, key):
         if self.prefix_function:
@@ -19,6 +25,13 @@ class CacheWithPresets(namedtuple('CacheWithPresets', ['cache', 'timeout', 'pref
 
     def delete(self, key):
         return self.cache.delete(self.prefixed_key(key))
+
+
+class CacheWithTimeout(CacheWithPresets):
+    def __new__(cls, cache, timeout):
+        warnings.warn("CacheWithTimeout is deprecated. Please use CacheWithPresets instead.",
+                      DeprecationWarning)
+        return super(CacheWithTimeout, cls).__new__(cls, cache, timeout)
 
 
 class TieredCache(object):

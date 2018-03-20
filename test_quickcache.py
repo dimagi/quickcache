@@ -8,7 +8,7 @@ import datetime
 import uuid
 
 from quickcache import get_quickcache
-from quickcache.cache_helpers import TieredCache, CacheWithPresets
+from quickcache.cache_helpers import TieredCache, CacheWithPresets, CacheWithTimeout
 
 BUFFER = []
 
@@ -80,7 +80,8 @@ _cache_with_set = CacheMock('cache', timeout=SHORT_TIME_UNIT, silent_set=False)
 quickcache = get_quickcache(cache=TieredCache([
     CacheWithPresets(CacheMock('local', timeout=None), timeout=10,
                      prefix_function=SessionMock.get_session),
-    CacheMock('shared', timeout=5 * 60)]
+    # even though CacheWithTimeout is deprecated, test it while it's still supported.
+    CacheWithTimeout(CacheMock('shared', timeout=None), timeout=5 * 60)]
 ))
 
 
