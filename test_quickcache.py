@@ -8,7 +8,7 @@ import datetime
 import uuid
 
 from quickcache import get_quickcache
-from quickcache.cache_helpers import TieredCache
+from quickcache.cache_helpers import TieredCache, CacheWithPresets, CacheWithTimeout
 
 BUFFER = []
 
@@ -58,6 +58,18 @@ class CacheMock(LocMemCache):
             BUFFER.append('{} set'.format(self.name))
 
 
+class SessionMock(object):
+    session = ''
+
+    @classmethod
+    def get_session(cls):
+        return cls.session
+
+    @classmethod
+    def reset_session(cls):
+        cls.session = ''
+
+
 SHORT_TIME_UNIT = 0.01
 
 _local_cache = CacheMock('local', timeout=SHORT_TIME_UNIT)
@@ -66,8 +78,10 @@ _cache = TieredCache([_local_cache, _shared_cache])
 _cache_with_set = CacheMock('cache', timeout=SHORT_TIME_UNIT, silent_set=False)
 
 quickcache = get_quickcache(cache=TieredCache([
-    CacheMock('local', timeout=10),
-    CacheMock('shared', timeout=5 * 60)]
+    CacheWithPresets(CacheMock('local', timeout=None), timeout=10,
+                     prefix_function=SessionMock.get_session),
+    # even though CacheWithTimeout is deprecated, test it while it's still supported.
+    CacheWithTimeout(CacheMock('shared', timeout=None), timeout=5 * 60)]
 ))
 
 
@@ -126,6 +140,35 @@ class QuickcacheTest(TestCase):
                           # fib(3/4/5) also ask for fib(1/2/3)
                           # so three cache hits
                           'local hit', 'local hit', 'local hit'])
+
+    def test_session_prefix(self):
+        """
+        When you call the same function from a different session,
+        the shared cache will hit but the local cache will miss
+
+        The point of this feature is to make the local cache effectively last
+        the length of a "session" (i.e. a request, an async task, etc.)
+        to avoid inconsistent local caches between processes
+        """
+        @quickcache([])
+        def return_one():
+            BUFFER.append('called')
+            return 1
+
+        SessionMock.session = 'a'
+        self.addCleanup(SessionMock.reset_session)
+
+        self.assertEqual(return_one(), 1)
+        self.assertEqual(self.consume_buffer(), ['local miss', 'shared miss', 'called'])
+        self.assertEqual(return_one(), 1)
+        self.assertEqual(self.consume_buffer(), ['local hit'])
+
+        SessionMock.session = 'b'
+        self.addCleanup(SessionMock.reset_session)
+        self.assertEqual(return_one(), 1)
+        self.assertEqual(self.consume_buffer(), ['local miss', 'shared hit'])
+        self.assertEqual(return_one(), 1)
+        self.assertEqual(self.consume_buffer(), ['local hit'])
 
     def test_vary_on_attr(self):
         class Item(object):
