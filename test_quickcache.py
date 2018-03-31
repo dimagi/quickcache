@@ -311,7 +311,7 @@ class QuickcacheTest(TestCase):
         time.sleep(SHORT_TIME_UNIT)
 
         dt_naive = datetime.datetime(2018, 3, 30)
-        # Test naive timezones
+        # Test naive datetimes
         self.assertNotEqual(dt, dt_naive)
         self.assertEqual(by_datetime(dt), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
