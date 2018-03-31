@@ -125,9 +125,12 @@ class QuickCacheHelper(object):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
         elif isinstance(value, datetime.datetime):
+            serialized_value = None
             if not value.tzinfo:
-                return value.isoformat()
-            return value.astimezone(pytz.UTC).isoformat()
+                serialized_value = value.isoformat()
+            else:
+                serialized_value = value.astimezone(pytz.UTC).isoformat()
+            return 'DT{}'.format(serialized_value)
         elif value is None:
             return 'N'
         else:
