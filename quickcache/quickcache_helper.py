@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+import datetime
+import pytz
 import hashlib
 import inspect
 from inspect import isfunction
@@ -122,6 +124,10 @@ class QuickCacheHelper(object):
         elif isinstance(value, set):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
+        elif isinstance(value, datetime.datetime):
+            if not value.tzinfo:
+                return value.isoformat()
+            return value.astimezone(pytz.UTC).isoformat()
         elif value is None:
             return 'N'
         else:

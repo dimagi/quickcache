@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import time
+import pytz
 
 from unittest import TestCase
 import datetime
@@ -281,6 +282,41 @@ class QuickcacheTest(TestCase):
 
         self.assertEqual(by_name(name_utf8), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['local hit'])
+
+    def test_datetime(self):
+        @quickcache(['dt'], cache=_cache_with_set)
+        def by_datetime(dt):
+            BUFFER.append('called')
+            return 'VALUE'
+
+        dt = datetime.datetime(2018, 3, 30, tzinfo=pytz.UTC)
+        # Basic datetime serialization
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache hit'])
+
+        # let the local cache expire
+        time.sleep(SHORT_TIME_UNIT)
+
+        dt_pst = dt.astimezone(pytz.timezone('US/Pacific'))
+        # Test different timezones. Should produce a cache hit
+        self.assertEqual(dt, dt_pst)
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt_pst), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache hit'])
+
+        # let the local cache expire
+        time.sleep(SHORT_TIME_UNIT)
+
+        dt_naive = datetime.datetime(2018, 3, 30)
+        # Test naive timezones
+        self.assertNotEqual(dt, dt_naive)
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt_naive), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
 
     def test_skippable(self):
         @quickcache(['name'], cache=_cache_with_set, skip_arg='force')

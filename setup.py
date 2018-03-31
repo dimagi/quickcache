@@ -13,6 +13,7 @@ setup(
     test_suite='test_quickcache',
     install_requires=[
         'six==1.11.0',
+        'pytz==2018.3',
     ],
     classifiers=[
         'Programming Language :: Python',
