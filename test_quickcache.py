@@ -312,7 +312,6 @@ class QuickcacheTest(TestCase):
 
         dt_naive = datetime.datetime(2018, 3, 30)
         # Test naive datetimes
-        self.assertNotEqual(dt, dt_naive)
         self.assertEqual(by_datetime(dt), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
         self.assertEqual(by_datetime(dt_naive), 'VALUE')
