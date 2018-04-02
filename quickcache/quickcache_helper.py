@@ -125,7 +125,6 @@ class QuickCacheHelper(object):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
         elif isinstance(value, datetime.datetime):
-            serialized_value = None
             if not value.tzinfo:
                 serialized_value = value.isoformat()
             else:
