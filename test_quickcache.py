@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import time
-import pytz
 
 from unittest import TestCase
 import datetime
@@ -70,6 +69,17 @@ class SessionMock(object):
     @classmethod
     def reset_session(cls):
         cls.session = ''
+
+
+class CustomTZ(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=3)
+
+    def tzname(self, dt):
+        return "CustomTZ"
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
 
 
 SHORT_TIME_UNIT = 0.01
@@ -300,12 +310,12 @@ class QuickcacheTest(TestCase):
         # let the local cache expire
         time.sleep(SHORT_TIME_UNIT)
 
-        dt_pst = dt.astimezone(pytz.timezone('US/Pacific'))
+        dt_custom = dt.astimezone(CustomTZ())
         # Test different timezones. Should produce a cache hit
-        self.assertEqual(dt, dt_pst)
+        self.assertEqual(dt, dt_custom)
         self.assertEqual(by_datetime(dt), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
-        self.assertEqual(by_datetime(dt_pst), 'VALUE')
+        self.assertEqual(by_datetime(dt_custom), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache hit'])
 
         # let the local cache expire
