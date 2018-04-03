@@ -1,7 +1,6 @@
 from datetime import tzinfo, timedelta
 
 ZERO = timedelta(0)
-HOUR = timedelta(hours=1)
 
 
 class UTC(tzinfo):
