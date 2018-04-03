@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 import datetime
-import pytz
 import hashlib
 import inspect
 from inspect import isfunction
 from collections import namedtuple
 
 from .logger import logger
+from .native_utc import utc
 import six
 
 if six.PY2:
@@ -128,7 +128,7 @@ class QuickCacheHelper(object):
             if not value.tzinfo:
                 serialized_value = value.isoformat()
             else:
-                serialized_value = value.astimezone(pytz.UTC).isoformat()
+                serialized_value = value.astimezone(utc).isoformat()
             return 'DT{}'.format(serialized_value)
         elif value is None:
             return 'N'

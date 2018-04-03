@@ -10,6 +10,7 @@ import uuid
 
 from quickcache import get_quickcache
 from quickcache.cache_helpers import TieredCache, CacheWithPresets, CacheWithTimeout
+from quickcache.native_utc import utc
 
 BUFFER = []
 
@@ -289,7 +290,7 @@ class QuickcacheTest(TestCase):
             BUFFER.append('called')
             return 'VALUE'
 
-        dt = datetime.datetime(2018, 3, 30, tzinfo=pytz.UTC)
+        dt = datetime.datetime(2018, 3, 30, tzinfo=utc)
         # Basic datetime serialization
         self.assertEqual(by_datetime(dt), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
