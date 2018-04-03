@@ -125,6 +125,10 @@ class QuickCacheHelper(object):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
         elif isinstance(value, datetime.datetime):
+            # Cache key equality for datetimes follows python equality. Namely:
+            # - Datetimes with different timezones but representing the same point in time are serialized
+            #   the same way
+            # - Naive datetimes can't cause a cache hit for tz aware datetimes (and vice versa)
             if not value.tzinfo:
                 serialized_value = value.isoformat()
             else:
