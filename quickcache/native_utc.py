@@ -1,3 +1,6 @@
+'''
+Source code from: https://docs.python.org/2.7/library/datetime.html#tzinfo-objects
+'''
 from datetime import tzinfo, timedelta
 
 ZERO = timedelta(0)
