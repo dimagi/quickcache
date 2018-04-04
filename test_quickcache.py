@@ -9,6 +9,7 @@ import uuid
 
 from quickcache import get_quickcache
 from quickcache.cache_helpers import TieredCache, CacheWithPresets, CacheWithTimeout
+from quickcache.native_utc import utc
 
 BUFFER = []
 
@@ -68,6 +69,17 @@ class SessionMock(object):
     @classmethod
     def reset_session(cls):
         cls.session = ''
+
+
+class CustomTZ(datetime.tzinfo):
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=3)
+
+    def tzname(self, dt):
+        return "CustomTZ"
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
 
 
 SHORT_TIME_UNIT = 0.01
@@ -281,6 +293,40 @@ class QuickcacheTest(TestCase):
 
         self.assertEqual(by_name(name_utf8), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['local hit'])
+
+    def test_datetime(self):
+        @quickcache(['dt'], cache=_cache_with_set)
+        def by_datetime(dt):
+            BUFFER.append('called')
+            return 'VALUE'
+
+        dt = datetime.datetime(2018, 3, 30, tzinfo=utc)
+        # Basic datetime serialization
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache hit'])
+
+        # let the local cache expire
+        time.sleep(SHORT_TIME_UNIT)
+
+        dt_custom = dt.astimezone(CustomTZ())
+        # Test different timezones. Should produce a cache hit
+        self.assertEqual(dt, dt_custom)
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt_custom), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache hit'])
+
+        # let the local cache expire
+        time.sleep(SHORT_TIME_UNIT)
+
+        dt_naive = datetime.datetime(2018, 3, 30)
+        # Test naive datetimes
+        self.assertEqual(by_datetime(dt), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_datetime(dt_naive), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
 
     def test_skippable(self):
         @quickcache(['name'], cache=_cache_with_set, skip_arg='force')

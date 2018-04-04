@@ -1,10 +1,12 @@
 from __future__ import absolute_import
+import datetime
 import hashlib
 import inspect
 from inspect import isfunction
 from collections import namedtuple
 
 from .logger import logger
+from .native_utc import utc
 import six
 
 if six.PY2:
@@ -122,6 +124,16 @@ class QuickCacheHelper(object):
         elif isinstance(value, set):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
+        elif isinstance(value, datetime.datetime):
+            # Cache key equality for datetimes follows python equality. Namely:
+            # - Datetimes with different timezones but representing the same point in time are serialized
+            #   the same way
+            # - Naive datetimes can't cause a cache hit for tz aware datetimes (and vice versa)
+            if not value.tzinfo:
+                serialized_value = value.isoformat()
+            else:
+                serialized_value = value.astimezone(utc).isoformat()
+            return 'DT{}'.format(serialized_value)
         elif value is None:
             return 'N'
         else:
