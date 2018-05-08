@@ -5,6 +5,10 @@ from collections import namedtuple
 from .logger import logger
 
 
+class ForceSkipCache(Exception):
+    pass
+
+
 class CacheWithPresets(namedtuple('CacheWithPresets', ['cache', 'timeout', 'prefix_function'])):
 
     # make prefix_function optional
@@ -18,13 +22,22 @@ class CacheWithPresets(namedtuple('CacheWithPresets', ['cache', 'timeout', 'pref
             return key
 
     def get(self, key, default=None):
-        return self.cache.get(self.prefixed_key(key), default=default)
+        try:
+            return self.cache.get(self.prefixed_key(key), default=default)
+        except ForceSkipCache:
+            return default
 
     def set(self, key, value):
-        return self.cache.set(self.prefixed_key(key), value, timeout=self.timeout)
+        try:
+            return self.cache.set(self.prefixed_key(key), value, timeout=self.timeout)
+        except ForceSkipCache:
+            pass
 
     def delete(self, key):
-        return self.cache.delete(self.prefixed_key(key))
+        try:
+            return self.cache.delete(self.prefixed_key(key))
+        except ForceSkipCache:
+            pass
 
 
 class CacheWithTimeout(CacheWithPresets):
