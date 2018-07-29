@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import unicode_literals
 import datetime
 import hashlib
 import inspect
@@ -8,11 +9,7 @@ from collections import namedtuple
 from .logger import logger
 from .native_utc import utc
 import six
-
-if six.PY2:
-    NUMERIC_TYPES = (int, long, float)
-else:
-    NUMERIC_TYPES = (int, float)
+from six.moves import map
 
 
 class QuickCacheHelper(object):
@@ -112,14 +109,14 @@ class QuickCacheHelper(object):
             return 'u' + self._hash(text)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
-        elif isinstance(value, NUMERIC_TYPES):
+        elif isinstance(value, six.integer_types + (float,)):
             return 'n' + str(value)
         elif isinstance(value, (list, tuple)):
             return 'L' + self._hash(
                 ','.join(map(self._serialize_for_key, value)))
         elif isinstance(value, dict):
             return 'D' + self._hash(
-                ','.join(sorted(map(self._serialize_for_key, value.items())))
+                ','.join(sorted(map(self._serialize_for_key, six.iteritems(value))))
             )
         elif isinstance(value, set):
             return 'S' + self._hash(

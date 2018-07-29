@@ -246,8 +246,8 @@ class QuickcacheTest(TestCase):
             pass
 
         # doesn't fail
-        lots_of_args(u"x", u"x", u"x", u"x", u"x", u"x")
-        key = lots_of_args.get_cache_key(u"x", u"x", u"x", u"x", u"x", u"x")
+        lots_of_args("x", "x", "x", "x", "x", "x")
+        key = lots_of_args.get_cache_key("x", "x", "x", "x", "x", "x")
         self.assertLess(len(key), 250)
         # assert it's actually been hashed
         self.assertEqual(
@@ -283,7 +283,7 @@ class QuickcacheTest(TestCase):
             BUFFER.append('called')
             return 'VALUE'
 
-        name_unicode = u'namé'
+        name_unicode = 'namé'
         name_utf8 = name_unicode.encode('utf-8')
 
         self.assertEqual(by_name(name_unicode), 'VALUE')
