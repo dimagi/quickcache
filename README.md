@@ -70,7 +70,7 @@ person.look_up_friends.clear(person)
       # ...
   ```
 
-- skip_arg can also be a function and will receive the save arguments as the function:
+- skip_arg can also be a function and will receive the same arguments as the function:
   ```python
   def skip_fn(name, address):
       return name == 'Ben' and 'Chicago' not in address
