@@ -328,6 +328,20 @@ class QuickcacheTest(TestCase):
         self.assertEqual(by_datetime(dt_naive), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
 
+    def test_uuid(self):
+        @quickcache(['uuid_value'], cache=_cache_with_set)
+        def by_uuid(uuid_value):
+            BUFFER.append('called')
+            return 'VALUE'
+
+        uuid_value = uuid.uuid4()
+        # Basic datetime serialization
+        self.assertEqual(by_uuid(uuid_value), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache miss', 'called', 'cache set'])
+        self.assertEqual(by_uuid(uuid_value), 'VALUE')
+        self.assertEqual(self.consume_buffer(), ['cache hit'])
+
+
     def test_skippable(self):
         @quickcache(['name'], cache=_cache_with_set, skip_arg='force')
         def by_name(name, force=False):
