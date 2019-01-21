@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import datetime
+import uuid
 import hashlib
 import inspect
 from inspect import isfunction
@@ -121,6 +122,8 @@ class QuickCacheHelper(object):
         elif isinstance(value, set):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
+        elif isinstance(value, uuid.UUID):
+            return 'U{}'.format(value)
         elif isinstance(value, datetime.datetime):
             # Cache key equality for datetimes follows python equality. Namely:
             # - Datetimes with different timezones but representing the same point in time are serialized
