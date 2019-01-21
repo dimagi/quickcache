@@ -341,7 +341,6 @@ class QuickcacheTest(TestCase):
         self.assertEqual(by_uuid(uuid_value), 'VALUE')
         self.assertEqual(self.consume_buffer(), ['cache hit'])
 
-
     def test_skippable(self):
         @quickcache(['name'], cache=_cache_with_set, skip_arg='force')
         def by_name(name, force=False):
