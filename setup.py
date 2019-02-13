@@ -13,7 +13,7 @@ setup(
     packages=['quickcache'],
     test_suite='test_quickcache',
     install_requires=[
-        'six==1.11.0',
+        'six',
     ],
     classifiers=[
         'Programming Language :: Python',
