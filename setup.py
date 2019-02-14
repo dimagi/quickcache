@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='quickcache',
-    version='0.5.2',
+    version='0.5.3',
     description='caching has never been easier',
     author='Dimagi',
     author_email='dev@dimagi.com',
