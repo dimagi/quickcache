@@ -12,6 +12,12 @@ from .native_utc import utc
 import six
 from six.moves import map
 
+try:
+    from inspect import getfullargspec
+except ImportError:
+    assert six.PY3 is False
+    from inspect import getargspec as getfullargspec
+
 
 class QuickCacheHelper(object):
     def __init__(self, fn, vary_on, cache, skip_arg=None, assert_function=None):
@@ -23,7 +29,7 @@ class QuickCacheHelper(object):
             self._hash(inspect.getsource(fn), 8)
         )
 
-        arg_names = inspect.getargspec(self.fn).args
+        arg_names = getfullargspec(self.fn).args
         if not isfunction(vary_on):
             vary_on = [part.split('.') for part in vary_on]
             vary_on = [(part[0], tuple(part[1:])) for part in vary_on]
@@ -43,7 +49,7 @@ class QuickCacheHelper(object):
         else:
             raise ValueError("skip_arg must be None, a string, or a function")
 
-        arg_spec = inspect.getargspec(self.fn)
+        arg_spec = getfullargspec(self.fn)
         if isinstance(skip_arg, six.string_types) and self.skip_arg not in arg_spec.args:
             raise ValueError(
                 'We cannot use "{}" as the "skip" parameter because the function {} has '
