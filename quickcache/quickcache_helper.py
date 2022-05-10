@@ -9,7 +9,7 @@ from .logger import logger
 from .native_utc import utc
 
 
-class QuickCacheHelper(object):
+class QuickCacheHelper:
     def __init__(self, fn, vary_on, cache, skip_arg=None, assert_function=None):
 
         self.fn = fn

@@ -45,7 +45,7 @@ class CacheWithTimeout(CacheWithPresets):
         return super(CacheWithTimeout, cls).__new__(cls, cache, timeout)
 
 
-class TieredCache(object):
+class TieredCache:
     """
     Tries a number of caches in increasing order.
     Caches should be ordered with faster, more local caches at the beginning

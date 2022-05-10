@@ -6,7 +6,7 @@ from .logger import assert_function
 from .quickcache_helper import QuickCacheHelper
 
 
-class ConfigMixin(object):
+class ConfigMixin:
     def but_with(self, **defaults):
         return self._replace(**defaults)
 
