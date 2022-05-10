@@ -4,19 +4,11 @@ import datetime
 import uuid
 import hashlib
 import inspect
-from inspect import isfunction
+from inspect import isfunction, getfullargspec
 from collections import namedtuple
 
 from .logger import logger
 from .native_utc import utc
-import six
-from six.moves import map
-
-try:
-    from inspect import getfullargspec
-except ImportError:
-    assert six.PY3 is False
-    from inspect import getargspec as getfullargspec
 
 
 class QuickCacheHelper(object):
@@ -44,13 +36,13 @@ class QuickCacheHelper(object):
 
         self.vary_on = vary_on
 
-        if skip_arg is None or isinstance(skip_arg, six.string_types) or isfunction(skip_arg):
+        if skip_arg is None or isinstance(skip_arg, str) or isfunction(skip_arg):
             self.skip_arg = skip_arg
         else:
             raise ValueError("skip_arg must be None, a string, or a function")
 
         arg_spec = getfullargspec(self.fn)
-        if isinstance(skip_arg, six.string_types) and self.skip_arg not in arg_spec.args:
+        if isinstance(skip_arg, str) and self.skip_arg not in arg_spec.args:
             raise ValueError(
                 'We cannot use "{}" as the "skip" parameter because the function {} has '
                 'no such argument'.format(self.skip_arg, self.fn.__name__)
@@ -100,7 +92,7 @@ class QuickCacheHelper(object):
         return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
     def _serialize_for_key(self, value):
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             return 'u' + self._hash(value)
         elif isinstance(value, bytes):
             # Text and bytes values should generate the same key since users
@@ -116,14 +108,14 @@ class QuickCacheHelper(object):
             return 'u' + self._hash(text)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
-        elif isinstance(value, six.integer_types + (float,)):
+        elif isinstance(value, (int, float)):
             return 'n' + str(value)
         elif isinstance(value, (list, tuple)):
             return 'L' + self._hash(
                 ','.join(map(self._serialize_for_key, value)))
         elif isinstance(value, dict):
             return 'D' + self._hash(
-                ','.join(sorted(map(self._serialize_for_key, six.iteritems(value))))
+                ','.join(sorted(map(self._serialize_for_key, value.items())))
             )
         elif isinstance(value, set):
             return 'S' + self._hash(
@@ -165,7 +157,7 @@ class QuickCacheHelper(object):
     def skip(self, *args, **kwargs):
         if not self.skip_arg:
             return False
-        elif isinstance(self.skip_arg, six.string_types):
+        elif isinstance(self.skip_arg, str):
             callargs = inspect.getcallargs(self.fn, *args, **kwargs)
             return callargs[self.skip_arg]
         elif isfunction(self.skip_arg):
