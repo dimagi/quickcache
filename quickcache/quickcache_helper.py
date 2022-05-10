@@ -55,12 +55,12 @@ class QuickCacheHelper(object):
                     )
 
     def call(self, *args, **kwargs):
-        logger.debug('checking caches for {}'.format(self.fn.__name__))
+        logger.debug('checking caches for %s', self.fn.__name__)
         key = self.get_cache_key(*args, **kwargs)
         logger.debug(key)
         content = self.cache.get(key, default=Ellipsis)
         if content is Ellipsis:
-            logger.debug('cache miss, calling {}'.format(self.fn.__name__))
+            logger.debug('cache miss, calling %s', self.fn.__name__)
             content = self.fn(*args, **kwargs)
             self.cache.set(key, content)
         return content
