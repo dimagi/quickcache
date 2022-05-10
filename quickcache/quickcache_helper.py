@@ -26,8 +26,8 @@ class QuickCacheHelper(object):
             for arg, attrs in vary_on:
                 if arg not in arg_names:
                     raise ValueError(
-                        'We cannot vary on "{}" because the function {} has '
-                        'no such argument'.format(arg, self.fn.__name__)
+                        f'We cannot vary on "{arg}" because the function {self.fn.__name__} has '
+                        'no such argument'
                     )
 
         self.encoding_assert = assert_function
@@ -42,16 +42,16 @@ class QuickCacheHelper(object):
         arg_spec = getfullargspec(self.fn)
         if isinstance(skip_arg, str) and self.skip_arg not in arg_spec.args:
             raise ValueError(
-                'We cannot use "{}" as the "skip" parameter because the function {} has '
-                'no such argument'.format(self.skip_arg, self.fn.__name__)
+                f'We cannot use "{self.skip_arg}" as the "skip" parameter because the function {self.fn.__name__} has '
+                'no such argument'
             )
 
         if not isfunction(self.vary_on):
             for arg, attrs in self.vary_on:
                 if arg == self.skip_arg:
                     raise ValueError(
-                        'You cannot use the "{}" argument as a vary on parameter and '
-                        'as the "skip cache" parameter in the function: {}'.format(arg, self.fn.__name__)
+                        f'You cannot use the "{arg}" argument as a vary on parameter and '
+                        f'as the "skip cache" parameter in the function: {self.fn.__name__}'
                     )
 
     def call(self, *args, **kwargs):
@@ -119,7 +119,7 @@ class QuickCacheHelper(object):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
         elif isinstance(value, uuid.UUID):
-            return 'U{}'.format(value)
+            return f'U{value}'
         elif isinstance(value, datetime.datetime):
             # Cache key equality for datetimes follows python equality. Namely:
             # - Datetimes with different timezones but representing the same point in time are serialized
@@ -129,11 +129,11 @@ class QuickCacheHelper(object):
                 serialized_value = value.isoformat()
             else:
                 serialized_value = value.astimezone(utc).isoformat()
-            return 'DT{}'.format(serialized_value)
+            return f'DT{serialized_value}'
         elif value is None:
             return 'N'
         else:
-            raise ValueError('Bad type "{}": {}'.format(type(value), value))
+            raise ValueError(f'Bad type "{type(value)}": {value}')
 
     def get_cache_key(self, *args, **kwargs):
         callargs = inspect.getcallargs(self.fn, *args, **kwargs)
@@ -150,7 +150,7 @@ class QuickCacheHelper(object):
                                for value in values)
         if len(args_string) > 150:
             args_string = 'H' + self._hash(args_string)
-        return 'quickcache.{}/{}'.format(self.prefix, args_string)
+        return f'quickcache.{self.prefix}/{args_string}'
 
     def skip(self, *args, **kwargs):
         if not self.skip_arg:

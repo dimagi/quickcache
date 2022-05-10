@@ -24,7 +24,7 @@ class ConfigMixin(object):
         if missing_values:
             raise ValueError(
                 'the quickcache decorator still needs values '
-                'for the following parameters: {}'.format(missing_values))
+                f'for the following parameters: {missing_values}')
 
         return self.call()
 
