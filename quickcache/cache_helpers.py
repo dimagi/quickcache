@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-
-from __future__ import unicode_literals
 import warnings
 from collections import namedtuple
 from .logger import logger
@@ -48,7 +45,7 @@ class CacheWithTimeout(CacheWithPresets):
         return super(CacheWithTimeout, cls).__new__(cls, cache, timeout)
 
 
-class TieredCache(object):
+class TieredCache:
     """
     Tries a number of caches in increasing order.
     Caches should be ordered with faster, more local caches at the beginning
@@ -69,9 +66,8 @@ class TieredCache(object):
             if content is not Ellipsis:
                 for missed_cache in missed:
                     missed_cache.set(key, content)
-                logger.debug('missed caches: {}'.format([c.__class__.__name__
-                                                         for c in missed]))
-                logger.debug('hit cache: {}'.format(cache.__class__.__name__))
+                logger.debug('missed caches: %s', [c.__class__.__name__ for c in missed])
+                logger.debug('hit cache: %s', cache.__class__.__name__)
                 return content
             else:
                 missed.append(cache)

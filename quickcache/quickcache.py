@@ -1,6 +1,4 @@
 # coding=utf-8
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from collections import namedtuple
 import functools
 
@@ -8,7 +6,7 @@ from .logger import assert_function
 from .quickcache_helper import QuickCacheHelper
 
 
-class ConfigMixin(object):
+class ConfigMixin:
     def but_with(self, **defaults):
         return self._replace(**defaults)
 
@@ -26,7 +24,7 @@ class ConfigMixin(object):
         if missing_values:
             raise ValueError(
                 'the quickcache decorator still needs values '
-                'for the following parameters: {}'.format(missing_values))
+                f'for the following parameters: {missing_values}')
 
         return self.call()
 

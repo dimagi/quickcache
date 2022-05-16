@@ -1,25 +1,15 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import datetime
 import uuid
 import hashlib
 import inspect
-from inspect import isfunction
+from inspect import isfunction, getfullargspec
 from collections import namedtuple
 
 from .logger import logger
 from .native_utc import utc
-import six
-from six.moves import map
-
-try:
-    from inspect import getfullargspec
-except ImportError:
-    assert six.PY3 is False
-    from inspect import getargspec as getfullargspec
 
 
-class QuickCacheHelper(object):
+class QuickCacheHelper:
     def __init__(self, fn, vary_on, cache, skip_arg=None, assert_function=None):
 
         self.fn = fn
@@ -36,41 +26,41 @@ class QuickCacheHelper(object):
             for arg, attrs in vary_on:
                 if arg not in arg_names:
                     raise ValueError(
-                        'We cannot vary on "{}" because the function {} has '
-                        'no such argument'.format(arg, self.fn.__name__)
+                        f'We cannot vary on "{arg}" because the function {self.fn.__name__} has '
+                        'no such argument'
                     )
 
         self.encoding_assert = assert_function
 
         self.vary_on = vary_on
 
-        if skip_arg is None or isinstance(skip_arg, six.string_types) or isfunction(skip_arg):
+        if skip_arg is None or isinstance(skip_arg, str) or isfunction(skip_arg):
             self.skip_arg = skip_arg
         else:
             raise ValueError("skip_arg must be None, a string, or a function")
 
         arg_spec = getfullargspec(self.fn)
-        if isinstance(skip_arg, six.string_types) and self.skip_arg not in arg_spec.args:
+        if isinstance(skip_arg, str) and self.skip_arg not in arg_spec.args:
             raise ValueError(
-                'We cannot use "{}" as the "skip" parameter because the function {} has '
-                'no such argument'.format(self.skip_arg, self.fn.__name__)
+                f'We cannot use "{self.skip_arg}" as the "skip" parameter because the function {self.fn.__name__} has '
+                'no such argument'
             )
 
         if not isfunction(self.vary_on):
             for arg, attrs in self.vary_on:
                 if arg == self.skip_arg:
                     raise ValueError(
-                        'You cannot use the "{}" argument as a vary on parameter and '
-                        'as the "skip cache" parameter in the function: {}'.format(arg, self.fn.__name__)
+                        f'You cannot use the "{arg}" argument as a vary on parameter and '
+                        f'as the "skip cache" parameter in the function: {self.fn.__name__}'
                     )
 
     def call(self, *args, **kwargs):
-        logger.debug('checking caches for {}'.format(self.fn.__name__))
+        logger.debug('checking caches for %s', self.fn.__name__)
         key = self.get_cache_key(*args, **kwargs)
         logger.debug(key)
         content = self.cache.get(key, default=Ellipsis)
         if content is Ellipsis:
-            logger.debug('cache miss, calling {}'.format(self.fn.__name__))
+            logger.debug('cache miss, calling %s', self.fn.__name__)
             content = self.fn(*args, **kwargs)
             self.cache.set(key, content)
         return content
@@ -100,7 +90,7 @@ class QuickCacheHelper(object):
         return hashlib.md5(value.encode('utf-8')).hexdigest()[-length:]
 
     def _serialize_for_key(self, value):
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             return 'u' + self._hash(value)
         elif isinstance(value, bytes):
             # Text and bytes values should generate the same key since users
@@ -116,20 +106,20 @@ class QuickCacheHelper(object):
             return 'u' + self._hash(text)
         elif isinstance(value, bool):
             return 'b' + str(int(value))
-        elif isinstance(value, six.integer_types + (float,)):
+        elif isinstance(value, (int, float)):
             return 'n' + str(value)
         elif isinstance(value, (list, tuple)):
             return 'L' + self._hash(
                 ','.join(map(self._serialize_for_key, value)))
         elif isinstance(value, dict):
             return 'D' + self._hash(
-                ','.join(sorted(map(self._serialize_for_key, six.iteritems(value))))
+                ','.join(sorted(map(self._serialize_for_key, value.items())))
             )
         elif isinstance(value, set):
             return 'S' + self._hash(
                 ','.join(sorted(map(self._serialize_for_key, value))))
         elif isinstance(value, uuid.UUID):
-            return 'U{}'.format(value)
+            return f'U{value}'
         elif isinstance(value, datetime.datetime):
             # Cache key equality for datetimes follows python equality. Namely:
             # - Datetimes with different timezones but representing the same point in time are serialized
@@ -139,11 +129,11 @@ class QuickCacheHelper(object):
                 serialized_value = value.isoformat()
             else:
                 serialized_value = value.astimezone(utc).isoformat()
-            return 'DT{}'.format(serialized_value)
+            return f'DT{serialized_value}'
         elif value is None:
             return 'N'
         else:
-            raise ValueError('Bad type "{}": {}'.format(type(value), value))
+            raise ValueError(f'Bad type "{type(value)}": {value}')
 
     def get_cache_key(self, *args, **kwargs):
         callargs = inspect.getcallargs(self.fn, *args, **kwargs)
@@ -160,12 +150,12 @@ class QuickCacheHelper(object):
                                for value in values)
         if len(args_string) > 150:
             args_string = 'H' + self._hash(args_string)
-        return 'quickcache.{}/{}'.format(self.prefix, args_string)
+        return f'quickcache.{self.prefix}/{args_string}'
 
     def skip(self, *args, **kwargs):
         if not self.skip_arg:
             return False
-        elif isinstance(self.skip_arg, six.string_types):
+        elif isinstance(self.skip_arg, str):
             callargs = inspect.getcallargs(self.fn, *args, **kwargs)
             return callargs[self.skip_arg]
         elif isfunction(self.skip_arg):

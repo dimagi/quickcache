@@ -1,8 +1,6 @@
 '''
 Source code from: https://docs.python.org/2.7/library/datetime.html#tzinfo-objects
 '''
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from datetime import tzinfo, timedelta
 
 ZERO = timedelta(0)
