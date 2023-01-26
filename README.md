@@ -12,6 +12,26 @@ quickcache = get_quickcache(cache=my_cache_backend)
 ```
 
 Django:
+
+First add the following to your `settings.py` - updating the backend/locations of the caches as you see fit.
+Both `'locmem'` and `'default'` must be present for the django integration to work.
+
+
+```python
+CACHES = {
+    'locmem': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'locmem-cache',
+    },
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://localhost:6379',
+    }
+}
+```
+
+Then use the cache as follows:
+
 ```python
 from quickcache.django_quickcache import get_django_quickcache
 
